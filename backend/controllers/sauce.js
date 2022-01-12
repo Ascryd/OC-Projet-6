@@ -1,4 +1,5 @@
 const Sauce = require("../models/Sauce")
+const fs = require("fs")
 
 
 exports.addSauce = (req, res, next) => {
@@ -27,7 +28,18 @@ exports.modifySauce = (req, res, next) => {
 
 
 exports.deleteOne = (req, res, next) => {
-    Sauce.deleteOne({ _id: req.params.id })
+    // ---- On va chercher le fichier pour avoir l'url de l'image et la supprimer
+    Sauce.findOne({ _id: req.params.id })
+        .then(sauce => {
+            const fileName = sauce.imageUrl.split("/images/")[1] // On split l'url en 2 partie, on recup la 2e partie (le nom du fichier) pour le supprimer
+            fs.unlink(`images/${fileName}`, () => {
+                Sauce.deleteOne({ _id: req.params.id })
+                    .then(() => res.status(200).json({ message: "Sauce supprimée !" }))
+                    .catch(error => res.status(404).json({ error }))
+            })
+        })
+        .catch(error => res.status(500).json({ error }))
+    
 }
 
 

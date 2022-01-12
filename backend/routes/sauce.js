@@ -5,7 +5,7 @@ const sauceCtrl = require ("../controllers/sauce")
 
 
 router.post("/", multer, sauceCtrl.addSauce)
-router.put("/:id", sauceCtrl.modifySauce)
+router.put("/:id", multer, sauceCtrl.modifySauce)
 router.delete("/:id", sauceCtrl.deleteOne)
 router.get("/:id", sauceCtrl.getOneSauce)
 router.get("/", sauceCtrl.getAllSauces)

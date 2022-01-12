@@ -1,10 +1,9 @@
 const express = require("express")
 const mongoose = require("mongoose")
+const path = require("path")
 
 const userRoutes = require("./routes/user")
-
-const Sauce = require("./models/Sauce")
-
+const saucesRoutes = require ("./routes/sauce")
 
 
 mongoose.connect('mongodb+srv://Ascryd:Barbouille123@Piiquante.xnmim.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
@@ -27,56 +26,12 @@ app.use((req, res, next) => {
 });
 
 
-  
+app.use("/images", express.static(path.join(__dirname, 'images')))
   
 // ----- On importe les routes/api pour l'authentification
 app.use("/api/auth", userRoutes)
 
-
-
-
-
-app.post("/api/sauces", (req, res, next) => {
-  delete req.body._id
-  const sauce = new Sauce ({
-    ...req.body
-  })
-  sauce.save()
-    .then(() => res.status(201).json({ message: "Sauce enregistrée !"}))
-    .catch(error => res.status(400).json({ error }))
-})
-
-app.put("/api/sauces/:id", (req, res, next) => {
-  Sauce.updateOne({ _id: req.params.id }, { ...req.body, _id: req.params.id })
-    .then(() => res.status(200).json ({ message: "Sauce modifiée !" }))
-    .catch(error => res.status(400).json({ error }))
-})
-
-app.delete("/api/sauces/:id", (req, res, next) => {
-  Sauce.deleteOne({ _id: req.params.id })
-})
-
-app.get("/api/sauces/:id", (req, res, next) => {
-  Sauce.findOne({ _id: req.params.id })
-    .then(sauce => res.status(200).json(sauce))
-    .catch(error => res.status(404).json({ error }))
-})
-
-
-app.get("/api/sauces", (req, res, next) => {
-  Sauce.find()
-    .then(sauces => res.status(200).json(sauces))
-    .catch(error => res.status(400).json({ error }))
-})
-
-
-
-
-
-
-
-
-app.post 
+app.use("/api/sauces", saucesRoutes)
 
 
 

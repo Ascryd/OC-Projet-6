@@ -57,6 +57,119 @@ exports.getAllSauces =  (req, res, next) => {
 }
 
 
+
+
+
+// like envoie +1 et dislike envoie -1
+
+
 exports.like = (req, res, next) => {
   
+  Sauce.findOne({ _id: req.params.id })
+    .then(sauce => {   
+
+    if (!sauce.usersLiked.includes(req.body.userId) && req.body.like === 1) {
+      console.log("Condition validée !")
+      Sauce.updateOne({ _id : req.params.id },
+      {
+        $inc: { likes: 1 },
+        $push: { usersLiked: req.body.userId }
+      })
+      .then(() => res.status(201).json({ message: "Like ajouté !" }))
+      .catch(error => res.status(400).json({ error }))
+    }
+
+
+    if (sauce.usersLiked.includes(req.body.userId) && req.body.like === 0) {
+      console.log("Condition validée !")
+      Sauce.updateOne({ _id : req.params.id },
+      {
+        $inc: { likes: -1 },
+        $pull: { usersLiked: req.body.userId }
+      })
+      .then(() => res.status(201).json({ message: "Like retiré !" }))
+      .catch(error => res.status(400).json({ error }))
+    }
+
+    if (!sauce.usersDisliked.includes(req.body.userId) && req.body.like === -1) {
+      console.log("Condition validée !")
+      Sauce.updateOne({ _id : req.params.id },
+      {
+        $inc: { dislikes: 1 },
+        $push: { usersDisliked: req.body.userId }
+      })
+      .then(() => res.status(201).json({ message: "Dislike ajouté !" }))
+      .catch(error => res.status(400).json({ error }))
+    }
+
+    if (sauce.usersDisliked.includes(req.body.userId) && req.body.like === 0) {
+      console.log("Condition validée !")
+      Sauce.updateOne({ _id : req.params.id },
+      {
+        $inc: { dislikes: -1 },
+        $pull: { usersDisliked: req.body.userId }
+      })
+      .then(() => res.status(201).json({ message: "Dislike ajouté !" }))
+      .catch(error => res.status(400).json({ error }))
+    }
+
+  })
+    .catch(error => res.status(404).json({ error }))
 }
+
+
+
+
+
+
+
+
+
+
+// Si user est déjà dans la liste "j'aime" : arrêter la boucle
+// Sinon si la liste "j'aime" existe et que userId n'est pas dans la liste "j'aime pas" : on push
+// Sinon si la liste "j'aime" existe mais que userId est dans "j'aime pas" : pop + push
+// Sinon si la liste 'j'aime" n'existe pas et que userId est dans "j'aime pas" : create "j'aime" + push + pop
+// Sinon si rien n'existe : créer "j'aime" + push
+
+
+
+// if (like === 1) {
+//   console.log("Liked")
+//   if (Sauce.usersLiked[userId]) {
+//     // Arrêter la boucle 
+//   } else if ( Sauce.usersLiked && (Sauce.usersDisliked[userId] = "undefined")) {
+//     Sauce.usersLiked.push(userId)
+//   } else if ( Sauce.usersLiked && Sauce.usersDisliked[userId] ) {
+//     Sauce.usersDisliked.pop(userId)
+//     Sauce.usersLiked.push(userId)
+//   } else if ( Sauce.usersDisliked[userId] ) {
+//     Sauce.usersLiked = []
+//     Sauce.usersLiked.push(userId)
+//     Sauce.usersDisliked.pop(userId)
+//   } else {
+//     Sauce.usersLiked = []
+//     Sauce.usersLiked.push(userId)
+//   }
+//   console.log(Sauce.usersLiked)
+
+
+// } else if (like === -1) {
+//   console.log("Disliked")
+//   if (Sauce.usersDisliked[userId]) {
+//     // Arrêter la boucle 
+//   } else if ( Sauce.usersDisliked && (Sauce.usersLiked[userId] = "undefined")) {
+//     Sauce.usersDisliked.push(userId)
+//   } else if ( Sauce.usersDisliked && Sauce.usersLiked[userId] ) {
+//     Sauce.usersLiked.pop(userId)
+//     Sauce.usersDisliked.push(userId)
+//   } else if ( Sauce.usersLiked[userId] ) {
+//     Sauce.usersDisliked = []
+//     Sauce.usersDisliked.push(userId)
+//     Sauce.usersLiked.pop(userId)
+//   } else {
+//     Sauce.usersDisliked = []
+//     Sauce.usersDisliked.push(userId)
+//   }
+//   console.log(Sauce.usersDisliked)
+// }

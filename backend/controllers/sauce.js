@@ -16,11 +16,28 @@ exports.addSauce = (req, res, next) => {
 
 
 exports.modifySauce = (req, res, next) => {
-    const sauceObject = req.file ?
+
+    Sauce.findOne ({ _id: req.params.id})
+    .then(sauce => {   
+      const fileName = sauce.imageUrl.split("/images/")[1]
+      if (req.file !== fileName) {
+        fs.unlink(`images/${fileName}`, (error) => {
+          if (error) {
+            console.log("Aucun fichier à supprimer ! " + error)
+          } else {
+            console.log(fileName + " supprimé")
+          }
+        })
+      }
+    })
+    const sauceObject = req.file ? // --------------> On vérifie si il y a un changement de l'image dans le nouveau formulaire, si oui, première possibilité, sinon, deuxième.
     {
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    } : { ...req.body }
+        ...JSON.parse(req.body.sauce),  // ------------------> On récupère le body du frontend qu'on transforme en objet JS
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` // ----------------------> On récupère l'image du frontend
+    } : { ...req.body } // -------------------- Si pas d'image, on récupère les données en JSON 
+
+    // console.log(fileName)
+    
     Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
       .then(() => res.status(200).json ({ message: "Sauce modifiée !" }))
       .catch(error => res.status(400).json({ error }))
@@ -28,10 +45,10 @@ exports.modifySauce = (req, res, next) => {
 
 
 exports.deleteOne = (req, res, next) => {
-    // ---- On va chercher le fichier pour avoir l'url de l'image et la supprimer
+    // -----------------> On va chercher le fichier pour avoir l'url de l'image et la supprimer
     Sauce.findOne({ _id: req.params.id })
         .then(sauce => {
-            const fileName = sauce.imageUrl.split("/images/")[1] // On split l'url en 2 partie, on recup la 2e partie (le nom du fichier) pour le supprimer
+            const fileName = sauce.imageUrl.split("/images/")[1] // --------------------------> On split l'url en 2 partie, on recup la 2e partie (le nom du fichier) pour le supprimer
             fs.unlink(`images/${fileName}`, () => {
                 Sauce.deleteOne({ _id: req.params.id })
                     .then(() => res.status(200).json({ message: "Sauce supprimée !" }))
@@ -55,12 +72,6 @@ exports.getAllSauces =  (req, res, next) => {
       .then(sauces => res.status(200).json(sauces))
       .catch(error => res.status(400).json({ error }))
 }
-
-
-
-
-
-// like envoie +1 et dislike envoie -1
 
 
 exports.like = (req, res, next) => {
@@ -124,6 +135,7 @@ exports.like = (req, res, next) => {
 
 
 
+// like envoie +1 et dislike envoie -1
 
 
 // Si user est déjà dans la liste "j'aime" : arrêter la boucle

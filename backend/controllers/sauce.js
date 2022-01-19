@@ -1,7 +1,11 @@
-const Sauce = require("../models/Sauce")
-const fs = require("fs")
+const Sauce = require("../models/Sauce") 
+const fs = require("fs")   // --------------> Fs est un outil de gestion de fichier
 
 
+
+
+
+// --------------> Ajout d'une sauce <-------------- //
 exports.addSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce)
     delete sauceObject._id
@@ -15,12 +19,23 @@ exports.addSauce = (req, res, next) => {
 }
 
 
+
+// --------------> Modification d'une sauce <-------------- //
 exports.modifySauce = (req, res, next) => {
 
-    Sauce.findOne ({ _id: req.params.id})
-    .then(sauce => {   
-      const fileName = sauce.imageUrl.split("/images/")[1]
-      if (req.file !== fileName) {
+  const sauceObject = req.file ? // --------------> On vérifie si il y a un changement de l'image dans le nouveau formulaire, si oui, première possibilité, sinon, deuxième.
+  {
+      ...JSON.parse(req.body.sauce),  // --------------> On récupère le body du frontend qu'on transforme en objet JS
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` // --------------> On récupère l'image du frontend
+  } : { ...req.body } // --------------> Si pas d'image, on récupère les données en JSON 
+
+
+
+  // --------------> On va d'abord chercher l'ancienne image de la sauce pour la supprimée si besoin.
+    Sauce.findOne ({ _id: req.params.id})  
+    .then(sauce => {
+      const fileName = sauce.imageUrl.split("/images/")[1] // --------------> On recupère le nom du fichier à supprimé
+      if (req.file) {
         fs.unlink(`images/${fileName}`, (error) => {
           if (error) {
             console.log("Aucun fichier à supprimer ! " + error)
@@ -30,25 +45,22 @@ exports.modifySauce = (req, res, next) => {
         })
       }
     })
-    const sauceObject = req.file ? // --------------> On vérifie si il y a un changement de l'image dans le nouveau formulaire, si oui, première possibilité, sinon, deuxième.
-    {
-        ...JSON.parse(req.body.sauce),  // ------------------> On récupère le body du frontend qu'on transforme en objet JS
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}` // ----------------------> On récupère l'image du frontend
-    } : { ...req.body } // -------------------- Si pas d'image, on récupère les données en JSON 
 
-    // console.log(fileName)
-    
-    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+    .then (sauce => {
+      Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
       .then(() => res.status(200).json ({ message: "Sauce modifiée !" }))
       .catch(error => res.status(400).json({ error }))
+    })
 }
 
 
+
+// --------------> Suppression d'une sauce <-------------- //
 exports.deleteOne = (req, res, next) => {
-    // -----------------> On va chercher le fichier pour avoir l'url de l'image et la supprimer
+    // --------------> On va chercher le fichier pour avoir l'url de l'image et la supprimer
     Sauce.findOne({ _id: req.params.id })
         .then(sauce => {
-            const fileName = sauce.imageUrl.split("/images/")[1] // --------------------------> On split l'url en 2 partie, on recup la 2e partie (le nom du fichier) pour le supprimer
+            const fileName = sauce.imageUrl.split("/images/")[1] // --------------> On split l'url en 2 partie, on recup la 2e partie (le nom du fichier) pour le supprimer
             fs.unlink(`images/${fileName}`, () => {
                 Sauce.deleteOne({ _id: req.params.id })
                     .then(() => res.status(200).json({ message: "Sauce supprimée !" }))
@@ -60,6 +72,8 @@ exports.deleteOne = (req, res, next) => {
 }
 
 
+
+// --------------> Récupération d'une sauce grâce à son ID pour l'afficher' <-------------- //
 exports.getOneSauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id })
       .then(sauce => res.status(200).json(sauce))
@@ -67,6 +81,8 @@ exports.getOneSauce = (req, res, next) => {
 }
 
 
+
+// --------------> Récupération de toutes les sauce pour les afficher <-------------- //
 exports.getAllSauces =  (req, res, next) => {
     Sauce.find()
       .then(sauces => res.status(200).json(sauces))
@@ -74,6 +90,8 @@ exports.getAllSauces =  (req, res, next) => {
 }
 
 
+
+// --------------> Ajout de la fonction Like/Dislike <-------------- //
 exports.like = (req, res, next) => {
   
   Sauce.findOne({ _id: req.params.id })
@@ -127,61 +145,3 @@ exports.like = (req, res, next) => {
   })
     .catch(error => res.status(404).json({ error }))
 }
-
-
-
-
-
-
-
-
-// like envoie +1 et dislike envoie -1
-
-
-// Si user est déjà dans la liste "j'aime" : arrêter la boucle
-// Sinon si la liste "j'aime" existe et que userId n'est pas dans la liste "j'aime pas" : on push
-// Sinon si la liste "j'aime" existe mais que userId est dans "j'aime pas" : pop + push
-// Sinon si la liste 'j'aime" n'existe pas et que userId est dans "j'aime pas" : create "j'aime" + push + pop
-// Sinon si rien n'existe : créer "j'aime" + push
-
-
-
-// if (like === 1) {
-//   console.log("Liked")
-//   if (Sauce.usersLiked[userId]) {
-//     // Arrêter la boucle 
-//   } else if ( Sauce.usersLiked && (Sauce.usersDisliked[userId] = "undefined")) {
-//     Sauce.usersLiked.push(userId)
-//   } else if ( Sauce.usersLiked && Sauce.usersDisliked[userId] ) {
-//     Sauce.usersDisliked.pop(userId)
-//     Sauce.usersLiked.push(userId)
-//   } else if ( Sauce.usersDisliked[userId] ) {
-//     Sauce.usersLiked = []
-//     Sauce.usersLiked.push(userId)
-//     Sauce.usersDisliked.pop(userId)
-//   } else {
-//     Sauce.usersLiked = []
-//     Sauce.usersLiked.push(userId)
-//   }
-//   console.log(Sauce.usersLiked)
-
-
-// } else if (like === -1) {
-//   console.log("Disliked")
-//   if (Sauce.usersDisliked[userId]) {
-//     // Arrêter la boucle 
-//   } else if ( Sauce.usersDisliked && (Sauce.usersLiked[userId] = "undefined")) {
-//     Sauce.usersDisliked.push(userId)
-//   } else if ( Sauce.usersDisliked && Sauce.usersLiked[userId] ) {
-//     Sauce.usersLiked.pop(userId)
-//     Sauce.usersDisliked.push(userId)
-//   } else if ( Sauce.usersLiked[userId] ) {
-//     Sauce.usersDisliked = []
-//     Sauce.usersDisliked.push(userId)
-//     Sauce.usersLiked.pop(userId)
-//   } else {
-//     Sauce.usersDisliked = []
-//     Sauce.usersDisliked.push(userId)
-//   }
-//   console.log(Sauce.usersDisliked)
-// }

@@ -4,6 +4,30 @@ const bcrypt = require("bcrypt")
 const User = require("../models/User")
 
 
+
+// Autre système de gestion d'erreurs
+const Erreurs = (err) => {
+  console.log(err.message, err.code)
+  let errors = { email: "", password: ""}
+
+  if (err.message.includes("Error, expected `email` to be unique.")) {
+    errors.email = "Cette adresse email est déjà enregistrée"
+    console.log("ok")  
+    return errors
+  }
+  
+  //validation erreurs
+  if (err.message.includes("User validation failed")) {
+    (Object.values(err.errors)).forEach(({properties}) => {
+      errors[properties.path] = properties.message
+    })
+  }
+
+  return errors
+}
+
+
+
 // -------  Logique métier de la fonction signup
 exports.signup = (req, res, next) => {
     bcrypt.hash(req.body.password, 10)
@@ -15,8 +39,14 @@ exports.signup = (req, res, next) => {
       user.save()
         .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
         .catch(error => res.status(400).json({ error }))
+        
+        // .catch (err => {
+        //   const errors = Erreurs(err)
+        //   res.status(400).json({ errors })
+        // })
+
     })
-    .catch(error => res.status(500).json({ error }))
+    .catch(err => res.status(500).json({ err }))
 }
 
 
@@ -41,7 +71,7 @@ exports.login = (req, res, next) => {
               )
             })
           })
-          .catch(error => res.status(500).json({ error }))
+          .catch(err => res.status(500).json({ err }))
     })
-    .catch(error => res.status(500).json({ error }))
+    .catch(err => res.status(500).json({ err }))
 }

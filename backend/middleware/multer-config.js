@@ -1,3 +1,5 @@
+// --------------> Ici on configure la gestion des images avec multer en leur donnant un nom unique, et en donnant un emplacement de stockage (images)
+
 const multer = require("multer")
 
 const MIME_TYPES = {

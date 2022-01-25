@@ -1,68 +1,41 @@
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
 
-const User = require("../models/User")
+const User = require("../models/User") // --------------> On récupère le model User
 
 
 
-// Autre système de gestion d'erreurs
-const Erreurs = (err) => {
-  console.log(err.message, err.code)
-  let errors = { email: "", password: ""}
 
-  if (err.message.includes("Error, expected `email` to be unique.")) {
-    errors.email = "Cette adresse email est déjà enregistrée"
-    console.log("ok")  
-    return errors
-  }
-  
-  //validation erreurs
-  if (err.message.includes("User validation failed")) {
-    (Object.values(err.errors)).forEach(({properties}) => {
-      errors[properties.path] = properties.message
-    })
-  }
-
-  return errors
-}
-
-
-
-// -------  Logique métier de la fonction signup
+// --------------> Logique métier de la fonction signup <-------------- //
 exports.signup = (req, res, next) => {
-    bcrypt.hash(req.body.password, 10)
+    bcrypt.hash(req.body.password, 10) // --------------> On hash le mdp avec Bcrypt (ici 10 fois)
     .then(hash => {
-      const user = new User({
+      const user = new User({ // --------------> On push le nouvel objet user dans l'array User de MongoDB
         email: req.body.email,
         password: hash
       })
       user.save()
-        .then(() => res.status(201).json({ message: 'Utilisateur créé !' }))
-        .catch(error => res.status(400).json({ error }))
+        .then(() => res.status(201).json({ message: 'Utilisateur créé !' })) // --------------> Message si validé
+        .catch(error => res.status(400).json({ error })) // --------------> Message si échec
         
-        // .catch (err => {
-        //   const errors = Erreurs(err)
-        //   res.status(400).json({ errors })
-        // })
-
     })
-    .catch(err => res.status(500).json({ err }))
+    .catch(error => res.status(500).json({ error })) // --------------> Message si échec
 }
 
 
-// ----- Logique métier de la fonction login
+// --------------> Logique métier de la fonction login <-------------- //
 exports.login = (req, res, next) => {
-    User.findOne ({ email: req.body.email })
+    User.findOne ({ email: req.body.email }) // --------------> On recherche un user dans Mongo grâce à son email
       .then( user => {
-        if (!user) {    // Si on ne trouve pas de user
+        if (!user) {    // --------------> Si on ne trouve pas de user
           return res.status(401).json ({ message: "Utilisateur non trouvé !" })
         }
-        bcrypt.compare(req.body.password, user.password)
+        bcrypt.compare(req.body.password, user.password) // --------------> On compare les mot de passe pour la validation
           .then(valid => {
-            if (!valid) {
+            if (!valid) { // --------------> Si non valide
               return res.status(401).json ({ message: "Mot de passe incorrect !" })
             }
-            res.status(200).json({
+            res.status(200).json({ // --------------> On renvoie vers le site avec un token de 24h
               userId: user._id,
               token: jwt.sign (
                 { userId: user._id },
@@ -71,7 +44,7 @@ exports.login = (req, res, next) => {
               )
             })
           })
-          .catch(err => res.status(500).json({ err }))
+          .catch(error => res.status(500).json({ error }))
     })
-    .catch(err => res.status(500).json({ err }))
+    .catch(error => res.status(500).json({ error }))
 }

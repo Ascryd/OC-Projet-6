@@ -5,6 +5,7 @@ const sauceCtrl = require ("../controllers/sauce")
 const auth = require("../middleware/auth")
 
 
+// --------------> Les routes, on met auth en premier pour des raisons de sécurité 
 router.post("/", auth, multer, sauceCtrl.addSauce)
 router.put("/:id", auth, multer, sauceCtrl.modifySauce)
 router.delete("/:id", auth, sauceCtrl.deleteOne)

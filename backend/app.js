@@ -6,7 +6,7 @@ const userRoutes = require("./routes/user")
 const saucesRoutes = require ("./routes/sauce")
 
 
-mongoose.connect('mongodb+srv://Ascryd:Barbouille123@Piiquante.xnmim.mongodb.net/myFirstDatabase?retryWrites=true&w=majority',
+mongoose.connect('mongodb+srv://Ascryd:Barbouille123@Piiquante.xnmim.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', // --------------> Connexion à MongoDB
 { useNewUrlParser: true,
   useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
@@ -18,7 +18,7 @@ const app = express()
 app.use(express.json())
 
 
-app.use((req, res, next) => {
+app.use((req, res, next) => {  // --------------> On délare les routes possibles ect pour augmenter la sécurité
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
@@ -26,9 +26,9 @@ app.use((req, res, next) => {
 });
 
 
-app.use("/images", express.static(path.join(__dirname, 'images')))
+app.use("/images", express.static(path.join(__dirname, 'images'))) // --------------> Configuration de multer / Gestion de fichiers
   
-// ----- On importe les routes/api pour l'authentification
+// --------------> On importe les routes/api
 app.use("/api/auth", userRoutes)
 
 app.use("/api/sauces", saucesRoutes)

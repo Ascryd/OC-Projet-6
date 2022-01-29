@@ -2,8 +2,8 @@
 
 const Validator = require("validatorjs")
 
-const validator = (body, rules, customMessages, callback) => { // --------------> On configure le validator 
-    const validation = new Validator (body, rules, customMessages)
+const validator = (body, rules, callback) => { // --------------> On configure le validator 
+    const validation = new Validator (body, rules)
     validation.passes(() => callback(null ,true))
     validation.fails(() => callback(validation.errors, false))
 }
@@ -13,9 +13,9 @@ const signup = (req, res, next) => { // --------------> On crée des règles/ at
         "email": "required|email",
         "password": "required|min: 6" // --------------> Minimum 6 caractères
     }
-    validator(req.body, validationRule, { required : "veuillez entrer un :attribute", min : "le mot de passe doit faire au moins 6 caractères !"}, (error, status) => {
+    validator(req.body, validationRule, (error, status) => {
         if (!status) {
-            res.status(412).send ({success: false, message: "La validation a échouée", data: error})
+            res.status(412).send ({success: false, message: "La validation a échouée, veuillez entrer un adresse email valide et un mot de passe de minimum 6 caractères !", data: error})
         } else {
             next()
         }

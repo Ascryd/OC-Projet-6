@@ -16,7 +16,7 @@ exports.signup = (req, res, next) => {
       })
       user.save()
         .then(() => res.status(201).json({ message: 'Utilisateur créé !' })) // --------------> Message si validé
-        .catch(error => res.status(400).json({ error })) // --------------> Message si échec
+        .catch(error => res.status(400).send({ success: false, message: "Erreur, cette adresse email n'est pas valide ou est déjà enregistrée !", data: error })) // --------------> Message si échec
         
     })
     .catch(error => res.status(500).json({ error })) // --------------> Message si échec
@@ -33,7 +33,7 @@ exports.login = (req, res, next) => {
         bcrypt.compare(req.body.password, user.password) // --------------> On compare les mot de passe pour la validation
           .then(valid => {
             if (!valid) { // --------------> Si non valide
-              return res.status(401).json ({ message: "Mot de passe incorrect !" })
+              return res.status(401).json ({ success: false, error: "Mot de passe incorect !"})
             }
             res.status(200).json({ // --------------> On renvoie vers le site avec un token de 24h
               userId: user._id,

@@ -6,7 +6,7 @@ const userRoutes = require("./routes/user")
 const saucesRoutes = require ("./routes/sauce")
 
 
-mongoose.connect('mongodb+srv://Ascryd:Barbouille123@Piiquante.xnmim.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', // --------------> Connexion à MongoDB
+mongoose.connect('mongodb+srv://YourName:<password>@piiquante.xnmim.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', // --------------> Connexion à MongoDB
 { useNewUrlParser: true,
   useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
